@@ -10,10 +10,12 @@ import axios from "axios";
 const SignIn = () => {
   const { signInUser } = useContext(AuthContext);
   const [error, setError] = useState(false);
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const location = useLocation();
   console.log("in signIn page", location);
-  const from = location.state || "/";
+  const from = location.state?.from?.pathname || "/"; // ✅ Safe access
+  // Debug করার জন্য:
+  console.log("From location:", from);
 
   const handleSignIn = (e) => {
     e.preventDefault();
@@ -24,19 +26,25 @@ const SignIn = () => {
     console.log(user);
     setError(true);
 
-  signInUser(email, password)
+    signInUser(email, password)
       .then((result) => {
         console.log("signIn successfull", result.user.email);
         const user = { email: result.user.email };
+        console.log("About to call /jwt endpoint with:", user); // ✅ এই log add করুন
         axios
-          .post('http://localhost:3000/jwt', user, {
+          .post("http://localhost:3000/jwt", user, {
             withCredentials: true,
           })
-          .then((res) => console.log(res.data));
-        // navigate(from)
+          .then((res) => {
+            console.log("JWT token created:", res.data); // ✅ এখানে res access করুন
+            navigate(from, { replace: true }); // ✅ এই line add করুন
+          })
+          .catch((err) => {
+            console.log("JWT error:", err);
+          });
       })
       .catch((error) => {
-        console.log("Enter  valid information", error.message);
+        console.log("Enter valid information", error.message);
       });
   };
   return (

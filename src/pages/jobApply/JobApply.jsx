@@ -35,6 +35,7 @@ const JobApply = () => {
       .then((data) => {
         if (data.insertedId) {
           console.log('successful job apply.');
+          alert('job applied successfully!')
           
         }
         navigate(from);

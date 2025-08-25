@@ -1,31 +1,34 @@
 import { useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 
-import axios from "axios";
 import Swal from "sweetalert2";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
 const MyApplications = () => {
   const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
-
+  const axiosSecure = useAxiosSecure();
   // Fetch user's job applications
-  //   fetch(`http://localhost:3000/job-application?email=${user.email}`)
-  //     .then((res) => res.json())
-  //     .then((data) => setJobs(data))
-  //     .catch((err) => console.error(err));
-  // }, [user?.email]);
   useEffect(() => {
     if (!user?.email) return;
 
-    axios
-      .get(`http://localhost:3000/job-application?email=${user.email}`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-    setJobs(res.data);      // state আপডেট করো
-    console.log(res.data);  // চাইলে console এ log করো
-  })
-  }, [user?.email]); // ✅ dependency array ঠিক
+    // axios
+    //   .get(`http://localhost:3000/job-application?email=${user.email}`, {
+    //     withCredentials: true,
+    //   })
+    //   .then((res) => {
+    //     setJobs(res.data); // ✅ state আপডেট
+    //     console.log("Fetched applications:", res.data); // ✅ কনসোলে চেক
+    //   })
+    //   .catch((err) => {
+    //     console.error("Error fetching applications:", err);
+    //     Swal.fire("Error", "Could not fetch your applications", "error");
+    //   });
+    axiosSecure.get(`/job-application?email=${user.email}`).then((res) => {
+      setJobs(res.data);
+      console.log("Fetched applications:", res.data);
+    });
+  }, [user.email]);
 
   // Delete a job application
   const deleteApplication = (id) => {
@@ -55,8 +58,8 @@ const MyApplications = () => {
             .then((res) => res.json())
             .then((data) => {
               if (data.deletedCount > 0) {
-                // Remove deleted job from UI
-                // setJobs(jobs.filter((job) => job._id !== id));
+                // ✅ UI থেকে ডিলিটেড জব রিমুভ করো
+                setJobs(jobs.filter((job) => job._id !== id));
                 swalWithBootstrapButtons.fire(
                   "Deleted!",
                   "Your application has been deleted.",
@@ -88,12 +91,7 @@ const MyApplications = () => {
           <table className="table table-zebra w-full border rounded-lg shadow-md">
             <thead className="bg-gray-100">
               <tr>
-                <th>
-                  <label>
-                    {" "}
-                    <input type="checkbox" className="checkbox" />{" "}
-                  </label>
-                </th>
+                <th>#</th>
                 <th className="text-left">Company</th>
                 <th className="text-left">Title</th>
                 <th className="text-left">Location</th>
@@ -108,11 +106,16 @@ const MyApplications = () => {
                   <td className="flex items-center gap-3 py-3">
                     <div className="avatar">
                       <div className="mask mask-squircle w-12 h-12">
-                        <img src={job.company_logo} alt={job.company_name} />
+                        <img
+                          src={job.company_logo}
+                          alt={job.company || "Company logo"}
+                        />
                       </div>
                     </div>
                     <div>
-                      <div className="font-bold">{job.company_name}</div>
+                      <div className="font-bold">
+                        {job.company || "Unknown Company"}
+                      </div>
                     </div>
                   </td>
                   <td>{job.title}</td>
